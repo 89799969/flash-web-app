@@ -1,0 +1,4 @@
+scripts/
+*.pyc
+__pycache__/
+site/
