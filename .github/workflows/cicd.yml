@@ -45,10 +45,14 @@ jobs:
             echo "成功连接服务器：$(whoami)@$(hostname)"
             
             cd /root/flask-web-app || { echo "项目目录不存在"; exit 1; }
-            git pull origin main || { echo "Git拉取失败"; exit 1; }
-            
-            pip3 install --upgrade pip
-            pip3 install -r requirements.txt || { echo "依赖安装失败"; exit 1; }
+            pull_ok=""
+            for i in 1 2 3 4 5 6; do
+              if git pull origin main; then pull_ok=1; break; else echo "Git拉取第${i}次失败，10秒后重试"; sleep 10; fi
+            done
+            [ -n "$pull_ok" ] || { echo "Git拉取失败"; exit 1; }
+
+            pip3 install --upgrade pip --retries 5
+            pip3 install --retries 5 -r requirements.txt || { echo "依赖安装失败"; exit 1; }
             
             supervisorctl restart flask-web-app || { echo "应用重启失败"; exit 1; }
             supervisorctl status flask-web-app
